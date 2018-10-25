@@ -5,11 +5,16 @@
  */
 package sensitivedataexposurelaboratory;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -27,47 +32,47 @@ public class SensitiveDataExposureLaboratory {
      */
     public static void main(String[] args) {
          
-        try{
+      
+        try {
             // i  generate a key using keygenerator
-            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-            keyGen.init(128);
+            KeyGenerator keyGen = KeyGenerator.getInstance("DESede");
+            keyGen.init(168);
             SecretKey secretKey = keyGen.generateKey();
-        
-        
+            
+            
             //ii generate a initialization vector
-            final int AES_KEYLENGTH = 128;
-            byte[] iv = new byte[AES_KEYLENGTH/8];
+            final int DESede_KEYLENGTH = 168;
+            byte[] iv = new byte[DESede_KEYLENGTH/21];
             SecureRandom prng = new SecureRandom();
             prng.nextBytes(iv);
     
-            //iii instantiate the algorithm of encryption AES
-            Cipher aesCipherForEncryption = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-        
-        
-            //iv configure the algorithm of encryption AES
+            //iii instantiate the algorithm of encryption 3DES
+            Cipher aesCipherForEncryption = Cipher.getInstance("DESede/CBC/PKCS5PADDING");
+            
+            
+            //iv configure the algorithm of encryption 3DES
             aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
             
             // v encrypt the data 
-            String strDataToEncrypt = "Hello World of Encryption using AES";
+            String strDataToEncrypt = "I am learning to cypher sensitive data employing JCE in my SDSW course";
             byte[] byteDataToEncrypt = strDataToEncrypt.getBytes();
             byte[] byteCipherText= aesCipherForEncryption
                     .doFinal(byteDataToEncrypt);
             
             String strCipherText = new BASE64Encoder().encode(byteCipherText);
-            System.out.println("Cipher text generated using AES is"+strCipherText);
+            System.out.println("Cipher text generated using 3DES is"+strCipherText);
             
-            //vi decipher the data
             
-            Cipher aesCipherForDecryption = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-            aesCipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
-            byte[] byteDecryptedText =  aesCipherForDecryption
-                    .doFinal(byteCipherText);
-            String strDecryptedText = new String(byteDecryptedText);
-            System.out.println("Decrypted Text message is "+ strDecryptedText);  
-        }catch(){
+             //calculate sha1
+             
+            MessageDigest messageDigest= MessageDigest.getInstance("SHA-1");
+            byte[] hashCipherText =messageDigest.digest(byteCipherText);            
+            System.out.println("The hash of cypher text is :" + new BASE64Encoder().encode(hashCipherText));
             
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
+            Logger.getLogger(SensitiveDataExposureLaboratory.class.getName()).log(Level.SEVERE, null, ex);
         }
-           
+   
     }
     
     
